@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/pattern_texture_generator.html"
+    }
+  ]
+}

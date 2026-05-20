@@ -1,0 +1,238 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#pg{font-family:var(--font-sans);background:var(--color-background-primary)}
+.pg-layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;min-height:560px}
+.pg-canvas-wrap{border-right:0.5px solid var(--color-border-tertiary);position:relative;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;min-height:400px}
+canvas#pg-canvas{display:block}
+.pg-panel{padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.pg-section-label{font-size:11px;color:var(--color-text-tertiary);letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:2px}
+.pg-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.pg-type-btn{padding:7px 4px;font-size:12px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;cursor:pointer;background:transparent;color:var(--color-text-secondary);font-family:var(--font-sans);transition:all 0.12s;text-align:center}
+.pg-type-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.pg-type-btn.active{background:var(--color-background-secondary);border-color:var(--color-border-primary);color:var(--color-text-primary);font-weight:500}
+.pg-row{display:flex;align-items:center;gap:8px}
+.pg-row label{font-size:12px;color:var(--color-text-secondary);min-width:52px}
+.pg-row input[type=range]{flex:1}
+.pg-row span{font-size:12px;font-weight:500;color:var(--color-text-primary);min-width:28px;text-align:right}
+.pg-palette{display:flex;gap:4px;flex-wrap:wrap}
+.pg-pal-btn{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.1s}
+.pg-pal-btn:hover{transform:scale(1.15)}
+.pg-pal-btn.active{border-color:var(--color-text-primary)}
+.pg-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+.pg-btn{padding:8px 12px;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:6px;cursor:pointer;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);transition:all 0.12s;display:flex;align-items:center;gap:6px;justify-content:center}
+.pg-btn:hover{background:var(--color-background-secondary)}
+.pg-btn.primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.pg-btn.primary:hover{opacity:0.85}
+.pg-seed-row{display:flex;gap:5px;align-items:center}
+.pg-seed{font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:3px 7px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+
+<div id="pg">
+  <div class="pg-layout">
+    <div class="pg-canvas-wrap">
+      <canvas id="pg-canvas" width="420" height="420"></canvas>
+    </div>
+    <div class="pg-panel">
+      <div>
+        <div class="pg-section-label">pattern</div>
+        <div class="pg-type-grid" id="pg-types">
+          <button class="pg-type-btn active" data-type="grid">grid</button>
+          <button class="pg-type-btn" data-type="dots">dots</button>
+          <button class="pg-type-btn" data-type="chevron">chevron</button>
+          <button class="pg-type-btn" data-type="hex">hex</button>
+          <button class="pg-type-btn" data-type="diagonal">diagonal</button>
+          <button class="pg-type-btn" data-type="circles">circles</button>
+          <button class="pg-type-btn" data-type="triangles">triangles</button>
+          <button class="pg-type-btn" data-type="wave">wave</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="pg-section-label">palette</div>
+        <div class="pg-palette" id="pg-palette"></div>
+      </div>
+
+      <div>
+        <div class="pg-section-label">controls</div>
+        <div class="pg-row"><label>scale</label><input type="range" id="pg-scale" min="8" max="80" value="30" step="1"><span id="pg-scale-out">30</span></div>
+        <div class="pg-row" style="margin-top:8px"><label>stroke</label><input type="range" id="pg-stroke" min="1" max="10" value="2" step="1"><span id="pg-stroke-out">2</span></div>
+        <div class="pg-row" style="margin-top:8px"><label>bg</label>
+          <div style="display:flex;gap:4px;flex:1">
+            <button class="pg-pal-btn" id="bg-light" style="background:#ffffff;border-color:#999" title="white bg" onclick="setBg('light',this)"></button>
+            <button class="pg-pal-btn" id="bg-dark" style="background:#111111" title="dark bg" onclick="setBg('dark',this)"></button>
+            <button class="pg-pal-btn" id="bg-cream" style="background:#F5F0E8" title="cream bg" onclick="setBg('cream',this)"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pg-actions">
+        <div>
+          <div class="pg-section-label" style="margin-bottom:6px">seed</div>
+          <div class="pg-seed-row">
+            <span class="pg-seed" id="pg-seed">—</span>
+            <button class="pg-btn" style="padding:5px 8px" onclick="randomize()" title="randomize"><i class="ti ti-refresh" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <button class="pg-btn primary" onclick="downloadPNG()"><i class="ti ti-download" aria-hidden="true"></i> export PNG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PALETTES=[
+  {name:'vivid',colors:['#FF3B5C','#FF8C00','#FFD600','#00C9A7','#3B82F6','#7C3AED']},
+  {name:'neon',colors:['#FF00FF','#00FFCC','#FFFF00','#FF4400','#00AAFF','#CC00FF']},
+  {name:'earthy',colors:['#8B5E3C','#C49A6C','#3E7B5A','#7B5EA7','#4A7C9A','#C25B35']},
+  {name:'pastel',colors:['#F4A4B4','#A4C8F4','#A4F4C0','#F4E4A4','#C4A4F4','#F4C4A4']},
+  {name:'mono',colors:['#111111','#333333','#555555','#888888','#AAAAAA','#DDDDDD']},
+  {name:'sunset',colors:['#FF6B35','#FF9F1C','#FFCF5C','#E63462','#8B1A4A','#F7C59F']},
+];
+
+let state={type:'grid',scale:30,stroke:2,seed:Math.floor(Math.random()*99999),paletteIdx:0,bg:'light',bgColors:{light:'#ffffff',dark:'#111111',cream:'#F5F0E8'}};
+
+function seededRand(seed){let s=seed;return function(){s=(s*16807+0)%2147483647;return(s-1)/2147483646};}
+
+const canvas=document.getElementById('pg-canvas');
+const ctx=canvas.getContext('2d');
+
+function draw(){
+  const {type,scale,stroke,seed,paletteIdx,bg,bgColors}=state;
+  const cols=PALETTES[paletteIdx].colors;
+  const bgCol=bgColors[bg];
+  const W=canvas.width,H=canvas.height;
+  const rand=seededRand(seed);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=bgCol;ctx.fillRect(0,0,W,H);
+
+  function pick(){return cols[Math.floor(rand()*cols.length)];}
+
+  if(type==='grid'){
+    for(let x=0;x<W;x+=scale){for(let y=0;y<H;y+=scale){
+      ctx.strokeStyle=pick();ctx.lineWidth=stroke;
+      ctx.strokeRect(x+stroke/2,y+stroke/2,scale-stroke,scale-stroke);
+    }}
+  }else if(type==='dots'){
+    const r=scale*0.35;
+    for(let x=r;x<W;x+=scale){for(let y=r;y<H;y+=scale){
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle=pick();ctx.fill();
+    }}
+  }else if(type==='chevron'){
+    const h=scale;
+    for(let row=-1;row<H/h+1;row++){
+      for(let x=0;x<W+scale;x+=scale*2){
+        const yOff=row*h;
+        ctx.beginPath();
+        ctx.moveTo(x,yOff);ctx.lineTo(x+scale,yOff+h/2);ctx.lineTo(x+scale*2,yOff);
+        ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
+      }
+    }
+  }else if(type==='hex'){
+    const R=scale*0.6,w=R*Math.sqrt(3),hh=R*1.5;
+    let row=0;
+    for(let y=-R;y<H+R;y+=hh,row++){
+      const xOff=(row%2===0)?0:w/2;
+      for(let x=-w+xOff;x<W+w;x+=w){
+        ctx.beginPath();
+        for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);ctx.lineTo(x+R*Math.cos(a),y+R*Math.sin(a));}
+        ctx.closePath();ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
+      }
+    }
+  }else if(type==='diagonal'){
+    const step=scale;
+    for(let i=-H;i<W+H;i+=step){
+      ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i+H,H);
+      ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
+    }
+  }else if(type==='circles'){
+    for(let x=0;x<W+scale;x+=scale){for(let y=0;y<H+scale;y+=scale){
+      ctx.beginPath();ctx.arc(x,y,scale*0.45,0,Math.PI*2);
+      ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
+    }}
+  }else if(type==='triangles'){
+    const s=scale;
+    for(let row=0;row*s*0.866<H+s;row++){
+      const yBase=row*s*0.866;
+      const xOff=(row%2===0)?0:s/2;
+      for(let col=-1;col*s<W+s;col++){
+        const x=col*s+xOff;
+        ctx.beginPath();
+        ctx.moveTo(x,yBase+s*0.866);ctx.lineTo(x+s/2,yBase);ctx.lineTo(x+s,yBase+s*0.866);
+        ctx.closePath();ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
+      }
+    }
+  }else if(type==='wave'){
+    const amp=scale*0.4,freq=scale;
+    for(let row=0;row*scale<H+scale*2;row++){
+      const yBase=row*scale;
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=2){
+        const y=yBase+Math.sin((x/freq)*Math.PI*2)*amp;
+        x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
+    }
+  }
+  document.getElementById('pg-seed').textContent='#'+String(seed).padStart(5,'0');
+}
+
+function setBg(name,el){
+  state.bg=name;
+  document.querySelectorAll('#pg .pg-pal-btn[id^="bg-"]').forEach(b=>b.style.borderColor='transparent');
+  el.style.borderColor='#999';
+  draw();
+}
+
+document.getElementById('pg-types').querySelectorAll('.pg-type-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.pg-type-btn').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    state.type=this.dataset.type;draw();
+  });
+});
+
+document.getElementById('pg-scale').addEventListener('input',function(){
+  state.scale=+this.value;document.getElementById('pg-scale-out').textContent=this.value;draw();
+});
+document.getElementById('pg-stroke').addEventListener('input',function(){
+  state.stroke=+this.value;document.getElementById('pg-stroke-out').textContent=this.value;draw();
+});
+
+const palEl=document.getElementById('pg-palette');
+PALETTES.forEach((pal,i)=>{
+  const swatch=document.createElement('div');
+  swatch.className='pg-pal-btn'+(i===0?' active':'');
+  swatch.style.background=`linear-gradient(135deg,${pal.colors[0]} 50%,${pal.colors[2]} 50%)`;
+  swatch.title=pal.name;
+  swatch.onclick=()=>{
+    document.querySelectorAll('.pg-palette .pg-pal-btn').forEach(b=>b.classList.remove('active'));
+    swatch.classList.add('active');
+    state.paletteIdx=i;draw();
+  };
+  palEl.appendChild(swatch);
+});
+
+function randomize(){
+  state.seed=Math.floor(Math.random()*99999);
+  const types=['grid','dots','chevron','hex','diagonal','circles','triangles','wave'];
+  state.type=types[Math.floor(Math.random()*types.length)];
+  state.scale=Math.floor(Math.random()*50)+12;
+  state.stroke=Math.floor(Math.random()*6)+1;
+  state.paletteIdx=Math.floor(Math.random()*PALETTES.length);
+  document.querySelectorAll('.pg-type-btn').forEach(b=>{b.classList.toggle('active',b.dataset.type===state.type);});
+  document.getElementById('pg-scale').value=state.scale;document.getElementById('pg-scale-out').textContent=state.scale;
+  document.getElementById('pg-stroke').value=state.stroke;document.getElementById('pg-stroke-out').textContent=state.stroke;
+  document.querySelectorAll('.pg-palette .pg-pal-btn').forEach((b,i)=>b.classList.toggle('active',i===state.paletteIdx));
+  draw();
+}
+
+function downloadPNG(){
+  const a=document.createElement('a');
+  a.download='pattern-'+String(state.seed).padStart(5,'0')+'.png';
+  a.href=canvas.toDataURL('image/png');a.click();
+}
+
+draw();
+</script>
