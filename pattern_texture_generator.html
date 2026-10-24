@@ -1,238 +1,228 @@
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pattern Generator · Seamless patterns for the web</title>
+<meta name="description" content="Make seamless geometric patterns and export them as SVG tiles, PNG wallpapers or a ready-to-paste CSS background.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-#pg{font-family:var(--font-sans);background:var(--color-background-primary)}
-.pg-layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;min-height:560px}
-.pg-canvas-wrap{border-right:0.5px solid var(--color-border-tertiary);position:relative;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;min-height:400px}
-canvas#pg-canvas{display:block}
-.pg-panel{padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
-.pg-section-label{font-size:11px;color:var(--color-text-tertiary);letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:2px}
-.pg-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.pg-type-btn{padding:7px 4px;font-size:12px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;cursor:pointer;background:transparent;color:var(--color-text-secondary);font-family:var(--font-sans);transition:all 0.12s;text-align:center}
-.pg-type-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
-.pg-type-btn.active{background:var(--color-background-secondary);border-color:var(--color-border-primary);color:var(--color-text-primary);font-weight:500}
-.pg-row{display:flex;align-items:center;gap:8px}
-.pg-row label{font-size:12px;color:var(--color-text-secondary);min-width:52px}
-.pg-row input[type=range]{flex:1}
-.pg-row span{font-size:12px;font-weight:500;color:var(--color-text-primary);min-width:28px;text-align:right}
-.pg-palette{display:flex;gap:4px;flex-wrap:wrap}
-.pg-pal-btn{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.1s}
-.pg-pal-btn:hover{transform:scale(1.15)}
-.pg-pal-btn.active{border-color:var(--color-text-primary)}
-.pg-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto}
-.pg-btn{padding:8px 12px;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:6px;cursor:pointer;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);transition:all 0.12s;display:flex;align-items:center;gap:6px;justify-content:center}
-.pg-btn:hover{background:var(--color-background-secondary)}
-.pg-btn.primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
-.pg-btn.primary:hover{opacity:0.85}
-.pg-seed-row{display:flex;gap:5px;align-items:center}
-.pg-seed{font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:3px 7px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root{--bg:#f6f4ef;--panel:#fff;--ink:#16130f;--muted:#6b645b;--line:#e4dfd6;--soft:#efebe3;--mono:'JetBrains Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#121110;--panel:#1b1a18;--ink:#f3efe8;--muted:#a39b90;--line:#2e2b27;--soft:#24221f}}
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.5 Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:340px 1fr;min-height:100vh}
+aside{border-right:1px solid var(--line);background:var(--panel);padding:20px;display:flex;flex-direction:column;gap:20px;max-height:100vh;overflow:auto;position:sticky;top:0}
+.brand{display:flex;justify-content:space-between;align-items:center}
+.brand b{display:flex;align-items:center;gap:10px;font-size:1.05rem;letter-spacing:-.01em}
+.brand b i{width:26px;height:26px;border-radius:8px;background:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 7px),var(--soft)}
+.brand a{font-size:.75rem;color:var(--muted);text-decoration:none}
+.lead{color:var(--muted);font-size:.86rem;margin-top:-8px}
+.group h3{font:600 .7rem var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.types{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.types button{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:.66rem;font-weight:600;color:var(--muted)}
+.types button svg{width:100%;flex:1;border-radius:6px}
+.types button[aria-pressed=true]{border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.palettes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.palettes button{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:6px;display:flex;flex-direction:column;gap:5px;font-size:.66rem;font-weight:600;color:var(--muted)}
+.palettes button span{display:flex;height:16px;border-radius:5px;overflow:hidden}
+.palettes button span i{flex:1}
+.palettes button[aria-pressed=true]{border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.colors{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.colors label{position:relative;width:34px;height:34px;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.colors label.bg{width:auto;padding:0 10px 0 38px;display:flex;align-items:center;font-size:.72rem;font-weight:600;box-shadow:inset 0 0 0 1px var(--line);background:var(--bg)}
+.colors label.bg::before{content:'';position:absolute;left:4px;top:4px;width:26px;height:26px;border-radius:7px;background:var(--bgc);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.colors input{position:absolute;inset:-6px;width:calc(100% + 12px);height:46px;opacity:0;cursor:pointer}
+.slider{display:grid;grid-template-columns:72px 1fr 40px;align-items:center;gap:10px;font-size:.82rem;margin-bottom:8px}
+.slider output{font:500 .74rem var(--mono);text-align:right;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.row{display:flex;gap:8px}
+.btn{flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-weight:600;font-size:.85rem;transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:.85rem}
+main{position:relative;min-height:100vh;display:flex;flex-direction:column}
+.stage{flex:1;position:relative;transition:background-color .3s}
+.stage .tile-info{position:absolute;left:16px;bottom:16px;font:500 .72rem var(--mono);background:rgba(0,0,0,.6);color:#fff;padding:6px 10px;border-radius:999px}
+.mock{position:absolute;inset:0;display:none;place-items:center;padding:24px}
+.mock .card{width:min(520px,92%);background:var(--panel);color:var(--ink);border-radius:20px;padding:28px;box-shadow:0 30px 60px -20px rgba(0,0,0,.4)}
+.mock .card h2{font-size:1.6rem;letter-spacing:-.03em;margin:8px 0}
+.mock .card p{color:var(--muted)}
+.mock .card small{font:600 .7rem var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.stage.with-card .mock{display:grid}
+.topbar{position:absolute;top:16px;right:16px;display:flex;gap:6px;z-index:2}
+.topbar button{border:0;border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.92);color:#111;font-weight:600;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.topbar button[aria-pressed=true]{background:#111;color:#fff}
+pre{font:400 .72rem/1.5 var(--mono);background:#141311;color:#e9e4da;border-radius:10px;padding:12px;overflow:auto;max-height:120px;white-space:pre-wrap;word-break:break-all}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.85rem;font-weight:600;transition:all .25s;pointer-events:none;z-index:10}
+.toast.on{opacity:1;transform:translateX(-50%)}
+footer{font-size:.74rem;color:var(--muted);margin-top:auto}
+footer a{color:inherit}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  main{order:-1;min-height:56vh;position:sticky;top:0;z-index:1}
+  aside{max-height:none;position:static;border-right:0;border-top:1px solid var(--line)}
+  .types{grid-template-columns:repeat(5,1fr)}
+}
 </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><b><i aria-hidden="true"></i>Pattern Generator</b><a href="https://neeleshagrawal.vercel.app" target="_blank" rel="noopener">by Neelesh ↗</a></div>
+    <p class="lead">Seamless geometric patterns for backgrounds, slides and social posts. Every tile repeats without a visible seam.</p>
 
-<div id="pg">
-  <div class="pg-layout">
-    <div class="pg-canvas-wrap">
-      <canvas id="pg-canvas" width="420" height="420"></canvas>
+    <div class="group"><h3>Pattern</h3><div class="types" id="types"></div></div>
+
+    <div class="group"><h3>Colours</h3>
+      <div class="palettes" id="palettes"></div>
+      <div class="colors" id="colors"></div>
     </div>
-    <div class="pg-panel">
-      <div>
-        <div class="pg-section-label">pattern</div>
-        <div class="pg-type-grid" id="pg-types">
-          <button class="pg-type-btn active" data-type="grid">grid</button>
-          <button class="pg-type-btn" data-type="dots">dots</button>
-          <button class="pg-type-btn" data-type="chevron">chevron</button>
-          <button class="pg-type-btn" data-type="hex">hex</button>
-          <button class="pg-type-btn" data-type="diagonal">diagonal</button>
-          <button class="pg-type-btn" data-type="circles">circles</button>
-          <button class="pg-type-btn" data-type="triangles">triangles</button>
-          <button class="pg-type-btn" data-type="wave">wave</button>
-        </div>
-      </div>
 
-      <div>
-        <div class="pg-section-label">palette</div>
-        <div class="pg-palette" id="pg-palette"></div>
-      </div>
-
-      <div>
-        <div class="pg-section-label">controls</div>
-        <div class="pg-row"><label>scale</label><input type="range" id="pg-scale" min="8" max="80" value="30" step="1"><span id="pg-scale-out">30</span></div>
-        <div class="pg-row" style="margin-top:8px"><label>stroke</label><input type="range" id="pg-stroke" min="1" max="10" value="2" step="1"><span id="pg-stroke-out">2</span></div>
-        <div class="pg-row" style="margin-top:8px"><label>bg</label>
-          <div style="display:flex;gap:4px;flex:1">
-            <button class="pg-pal-btn" id="bg-light" style="background:#ffffff;border-color:#999" title="white bg" onclick="setBg('light',this)"></button>
-            <button class="pg-pal-btn" id="bg-dark" style="background:#111111" title="dark bg" onclick="setBg('dark',this)"></button>
-            <button class="pg-pal-btn" id="bg-cream" style="background:#F5F0E8" title="cream bg" onclick="setBg('cream',this)"></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="pg-actions">
-        <div>
-          <div class="pg-section-label" style="margin-bottom:6px">seed</div>
-          <div class="pg-seed-row">
-            <span class="pg-seed" id="pg-seed">—</span>
-            <button class="pg-btn" style="padding:5px 8px" onclick="randomize()" title="randomize"><i class="ti ti-refresh" aria-hidden="true"></i></button>
-          </div>
-        </div>
-        <button class="pg-btn primary" onclick="downloadPNG()"><i class="ti ti-download" aria-hidden="true"></i> export PNG</button>
-      </div>
+    <div class="group"><h3>Shape</h3>
+      <div class="slider"><label for="scale">Scale</label><input type="range" id="scale" min="12" max="120" value="40"><output for="scale"></output></div>
+      <div class="slider"><label for="stroke">Stroke</label><input type="range" id="stroke" min="1" max="14" value="3"><output for="stroke"></output></div>
+      <div class="slider"><label for="density">Density</label><input type="range" id="density" min="20" max="100" value="70"><output for="density"></output></div>
+      <div class="slider"><label for="opacity">Opacity</label><input type="range" id="opacity" min="15" max="100" value="100"><output for="opacity"></output></div>
+      <div class="row"><button class="btn" id="shuffle">Shuffle colours</button><button class="btn" id="random">Surprise me</button></div>
     </div>
-  </div>
+
+    <div class="group"><h3>Export</h3>
+      <select id="size" aria-label="PNG size">
+        <option value="tile">PNG · single tile</option>
+        <option value="1920x1080" selected>PNG · 1920 × 1080 desktop</option>
+        <option value="2560x1440">PNG · 2560 × 1440</option>
+        <option value="1080x1080">PNG · 1080 × 1080 post</option>
+        <option value="1080x1920">PNG · 1080 × 1920 story</option>
+        <option value="1500x500">PNG · 1500 × 500 banner</option>
+      </select>
+      <div class="row" style="margin-top:8px"><button class="btn primary" id="png">Download PNG</button><button class="btn" id="svg">SVG tile</button></div>
+      <h3 style="margin-top:14px">CSS background</h3>
+      <pre id="css"></pre>
+      <div class="row" style="margin-top:8px"><button class="btn" id="copycss">Copy CSS</button><button class="btn" id="share">Copy link</button></div>
+    </div>
+    <footer>Made during Ship69, rebuilt Oct 2026 · <a href="https://neeleshagrawal.vercel.app" target="_blank" rel="noopener">neeleshagrawal.vercel.app</a></footer>
+  </aside>
+  <main>
+    <div class="stage" id="stage">
+      <div class="topbar" role="group" aria-label="Preview"><button aria-pressed="true" data-view="full">Full</button><button aria-pressed="false" data-view="card">On a page</button></div>
+      <div class="mock"><div class="card"><small>Preview</small><h2>Your pattern behind real content</h2><p>Check that text stays readable. Lower the opacity or density if the pattern gets busy.</p></div></div>
+      <span class="tile-info" id="info"></span>
+    </div>
+  </main>
 </div>
-
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
-const PALETTES=[
-  {name:'vivid',colors:['#FF3B5C','#FF8C00','#FFD600','#00C9A7','#3B82F6','#7C3AED']},
-  {name:'neon',colors:['#FF00FF','#00FFCC','#FFFF00','#FF4400','#00AAFF','#CC00FF']},
-  {name:'earthy',colors:['#8B5E3C','#C49A6C','#3E7B5A','#7B5EA7','#4A7C9A','#C25B35']},
-  {name:'pastel',colors:['#F4A4B4','#A4C8F4','#A4F4C0','#F4E4A4','#C4A4F4','#F4C4A4']},
-  {name:'mono',colors:['#111111','#333333','#555555','#888888','#AAAAAA','#DDDDDD']},
-  {name:'sunset',colors:['#FF6B35','#FF9F1C','#FFCF5C','#E63462','#8B1A4A','#F7C59F']},
-];
+const $ = s => document.querySelector(s);
+const PALETTES = {
+  Ink: ['#f6f1e7', '#16130f', '#16130f', '#16130f'],
+  Vivid: ['#ffffff', '#ff3b5c', '#3b82f6', '#ffd600'],
+  Sunset: ['#2b1d3f', '#ff6b35', '#ffb23f', '#e63462'],
+  Mint: ['#0f2a2a', '#5eead4', '#a7f3d0', '#14b8a6'],
+  Pastel: ['#fdf6f0', '#f4a4b4', '#a4c8f4', '#c4a4f4'],
+  Earth: ['#f3ebdd', '#8b5e3c', '#3e7b5a', '#c25b35'],
+};
+const TYPES = ['grid', 'dots', 'checker', 'plus', 'chevron', 'hex', 'diagonal', 'rings', 'triangles', 'waves', 'confetti', 'squiggle'];
+const state = { type: 'dots', palette: 'Vivid', colors: [...PALETTES.Vivid], scale: 40, stroke: 3, density: 70, opacity: 100, seed: 7 };
 
-let state={type:'grid',scale:30,stroke:2,seed:Math.floor(Math.random()*99999),paletteIdx:0,bg:'light',bgColors:{light:'#ffffff',dark:'#111111',cream:'#F5F0E8'}};
+// seeded random so the same settings always produce the same tile
+const rng = seed => { let s = seed % 2147483647 || 1; return () => (s = s * 16807 % 2147483647) / 2147483647; };
 
-function seededRand(seed){let s=seed;return function(){s=(s*16807+0)%2147483647;return(s-1)/2147483646};}
-
-const canvas=document.getElementById('pg-canvas');
-const ctx=canvas.getContext('2d');
-
-function draw(){
-  const {type,scale,stroke,seed,paletteIdx,bg,bgColors}=state;
-  const cols=PALETTES[paletteIdx].colors;
-  const bgCol=bgColors[bg];
-  const W=canvas.width,H=canvas.height;
-  const rand=seededRand(seed);
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle=bgCol;ctx.fillRect(0,0,W,H);
-
-  function pick(){return cols[Math.floor(rand()*cols.length)];}
-
-  if(type==='grid'){
-    for(let x=0;x<W;x+=scale){for(let y=0;y<H;y+=scale){
-      ctx.strokeStyle=pick();ctx.lineWidth=stroke;
-      ctx.strokeRect(x+stroke/2,y+stroke/2,scale-stroke,scale-stroke);
-    }}
-  }else if(type==='dots'){
-    const r=scale*0.35;
-    for(let x=r;x<W;x+=scale){for(let y=r;y<H;y+=scale){
-      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
-      ctx.fillStyle=pick();ctx.fill();
-    }}
-  }else if(type==='chevron'){
-    const h=scale;
-    for(let row=-1;row<H/h+1;row++){
-      for(let x=0;x<W+scale;x+=scale*2){
-        const yOff=row*h;
-        ctx.beginPath();
-        ctx.moveTo(x,yOff);ctx.lineTo(x+scale,yOff+h/2);ctx.lineTo(x+scale*2,yOff);
-        ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
-      }
-    }
-  }else if(type==='hex'){
-    const R=scale*0.6,w=R*Math.sqrt(3),hh=R*1.5;
-    let row=0;
-    for(let y=-R;y<H+R;y+=hh,row++){
-      const xOff=(row%2===0)?0:w/2;
-      for(let x=-w+xOff;x<W+w;x+=w){
-        ctx.beginPath();
-        for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);ctx.lineTo(x+R*Math.cos(a),y+R*Math.sin(a));}
-        ctx.closePath();ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
-      }
-    }
-  }else if(type==='diagonal'){
-    const step=scale;
-    for(let i=-H;i<W+H;i+=step){
-      ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i+H,H);
-      ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
-    }
-  }else if(type==='circles'){
-    for(let x=0;x<W+scale;x+=scale){for(let y=0;y<H+scale;y+=scale){
-      ctx.beginPath();ctx.arc(x,y,scale*0.45,0,Math.PI*2);
-      ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
-    }}
-  }else if(type==='triangles'){
-    const s=scale;
-    for(let row=0;row*s*0.866<H+s;row++){
-      const yBase=row*s*0.866;
-      const xOff=(row%2===0)?0:s/2;
-      for(let col=-1;col*s<W+s;col++){
-        const x=col*s+xOff;
-        ctx.beginPath();
-        ctx.moveTo(x,yBase+s*0.866);ctx.lineTo(x+s/2,yBase);ctx.lineTo(x+s,yBase+s*0.866);
-        ctx.closePath();ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
-      }
-    }
-  }else if(type==='wave'){
-    const amp=scale*0.4,freq=scale;
-    for(let row=0;row*scale<H+scale*2;row++){
-      const yBase=row*scale;
-      ctx.beginPath();
-      for(let x=0;x<=W;x+=2){
-        const y=yBase+Math.sin((x/freq)*Math.PI*2)*amp;
-        x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-      }
-      ctx.strokeStyle=pick();ctx.lineWidth=stroke;ctx.stroke();
-    }
+// Build one seamless tile. Shapes are drawn at 9 offsets (tile and neighbours) and clipped by the viewBox,
+// so anything crossing an edge reappears on the opposite edge.
+function tile(st = state) {
+  const s = st.scale, n = 4, sw = st.stroke, d = st.density / 100, rnd = rng(st.seed);
+  const ink = st.colors.slice(1);
+  const pick = () => ink[Math.floor(rnd() * ink.length)];
+  let W = s * n, H = s * n, parts = [];
+  const add = (fn) => parts.push(fn);
+  const line = (x1, y1, x2, y2, c) => `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="${sw}" stroke-linecap="round" fill="none"/>`;
+  switch (st.type) {
+    case 'grid': for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const c = pick(), k = s * (1 - d) / 2; add(`<rect x="${i * s + k + sw / 2}" y="${j * s + k + sw / 2}" width="${s * d - sw}" height="${s * d - sw}" fill="none" stroke="${c}" stroke-width="${sw}" rx="${sw}"/>`); } break;
+    case 'dots': for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) add(`<circle cx="${i * s + s / 2}" cy="${j * s + s / 2}" r="${s * 0.38 * d}" fill="${pick()}"/>`); break;
+    case 'checker': for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if ((i + j) % 2 === 0) { const k = s * (1 - d) / 2; add(`<rect x="${i * s + k}" y="${j * s + k}" width="${s * d}" height="${s * d}" fill="${pick()}"/>`); } break;
+    case 'plus': for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const cx = i * s + s / 2, cy = j * s + s / 2, r = s * 0.32 * d, c = pick(); add(line(cx - r, cy, cx + r, cy, c) + line(cx, cy - r, cx, cy + r, c)); } break;
+    case 'chevron': for (let j = 0; j < n; j++) for (let i = 0; i < n; i += 2) { const y = j * s, a = s * d; add(`<path d="M${i * s} ${y + a / 2}L${(i + 1) * s} ${y + a / 2 - a / 2 + a}L${(i + 2) * s} ${y + a / 2}" transform="translate(0 ${-a / 4})" stroke="${pick()}" stroke-width="${sw}" fill="none" stroke-linejoin="round"/>`); } break;
+    case 'hex': { const R = s / 2, w = R * Math.sqrt(3), cols = 4, rows = 4; W = w * cols; H = R * 1.5 * rows;
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { const cx = c * w + (r % 2 ? w / 2 : 0), cy = r * R * 1.5, rr = R * (0.55 + 0.45 * d), pts = [...Array(6)].map((_, k) => { const a = Math.PI / 180 * (60 * k - 30); return `${(cx + rr * Math.cos(a)).toFixed(2)},${(cy + rr * Math.sin(a)).toFixed(2)}`; }).join(' '); add(`<polygon points="${pts}" fill="none" stroke="${pick()}" stroke-width="${sw}" stroke-linejoin="round"/>`); } } break;
+    case 'diagonal': { const gap = s * (1.15 - d * 0.6); const k = Math.max(1, Math.round(W / gap)); const g = W / k; for (let i = -k; i < k * 2; i++) add(line(i * g, 0, i * g + H, H, pick())); } break;
+    case 'rings': for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) add(`<circle cx="${i * s + s / 2}" cy="${j * s + s / 2}" r="${s * 0.42 * d}" fill="none" stroke="${pick()}" stroke-width="${sw}"/>`); break;
+    case 'triangles': { const th = s * 0.866; H = th * 4; for (let r = 0; r < 4; r++) for (let c = -1; c < n + 1; c++) { const x = c * s + (r % 2 ? s / 2 : 0), y = r * th, k = (1 - d) * s * 0.25; add(`<path d="M${x + k} ${y + th - k / 2}L${x + s / 2} ${y + k}L${x + s - k} ${y + th - k / 2}Z" fill="none" stroke="${pick()}" stroke-width="${sw}" stroke-linejoin="round"/>`); } } break;
+    case 'waves': for (let j = 0; j < n; j++) { const y = j * s + s / 2, a = s * 0.3 * d; let p = `M0 ${y}`; for (let x = 0; x <= W; x += 2) p += `L${x} ${(y + Math.sin(x / W * Math.PI * 2 * 2) * a).toFixed(2)}`; add(`<path d="${p}" stroke="${pick()}" stroke-width="${sw}" fill="none" stroke-linecap="round"/>`); } break;
+    case 'squiggle': for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const x = i * s + s * 0.15, y = j * s + s / 2, a = s * 0.18 * d, l = s * 0.7; add(`<path d="M${x} ${y}q${l / 4} ${-a * 2} ${l / 2} 0t${l / 2} 0" stroke="${pick()}" stroke-width="${sw}" fill="none" stroke-linecap="round" transform="rotate(${Math.floor(rnd() * 4) * 45} ${x + l / 2} ${y})"/>`); } break;
+    case 'confetti': for (let k = 0; k < 18; k++) { const x = rnd() * W, y = rnd() * H, c = pick(), r = s * 0.12 * (0.6 + d), kind = Math.floor(rnd() * 3), rot = Math.floor(rnd() * 180);
+      add(kind === 0 ? `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>` : kind === 1 ? `<rect x="${x - r}" y="${y - r / 3}" width="${r * 2}" height="${r / 1.5}" rx="${r / 3}" fill="${c}" transform="rotate(${rot} ${x} ${y})"/>` : `<path d="M${x} ${y - r}L${x + r} ${y + r}L${x - r} ${y + r}Z" fill="${c}" transform="rotate(${rot} ${x} ${y})"/>`); } break;
   }
-  document.getElementById('pg-seed').textContent='#'+String(seed).padStart(5,'0');
+  const body = parts.join('');
+  const copies = [-1, 0, 1].flatMap(dx => [-1, 0, 1].map(dy => `<g transform="translate(${(dx * W).toFixed(2)} ${(dy * H).toFixed(2)})">${body}</g>`)).join('');
+  W = +W.toFixed(2); H = +H.toFixed(2);
+  return { W, H, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" fill="${st.colors[0]}"/><g opacity="${st.opacity / 100}">${copies}</g></svg>` };
+}
+const dataUri = svg => `url("data:image/svg+xml,${encodeURIComponent(svg).replace(/'/g, '%27').replace(/"/g, '%22')}")`;
+
+function render() {
+  const t = tile();
+  const stage = $('#stage');
+  stage.style.backgroundImage = dataUri(t.svg);
+  stage.style.backgroundSize = `${t.W}px ${t.H}px`;
+  $('#info').textContent = `${state.type} · tile ${Math.round(t.W)} × ${Math.round(t.H)}px · seed ${state.seed}`;
+  $('#css').textContent = `background-color: ${state.colors[0]};\nbackground-image: ${dataUri(t.svg)};\nbackground-size: ${t.W}px ${t.H}px;`;
+  document.querySelectorAll('.slider').forEach(r => { const i = r.querySelector('input'); r.querySelector('output').textContent = i.value + (i.id === 'density' || i.id === 'opacity' ? '%' : 'px'); });
+  history.replaceState(null, '', '#' + new URLSearchParams({ t: state.type, c: state.colors.map(c => c.slice(1)).join('-'), s: state.scale, w: state.stroke, d: state.density, o: state.opacity, r: state.seed }));
 }
 
-function setBg(name,el){
-  state.bg=name;
-  document.querySelectorAll('#pg .pg-pal-btn[id^="bg-"]').forEach(b=>b.style.borderColor='transparent');
-  el.style.borderColor='#999';
-  draw();
+function buildUI() {
+  $('#types').innerHTML = TYPES.map(t => { const mini = tile({ ...state, type: t, scale: 14, stroke: 1.5, colors: ['transparent', 'currentColor', 'currentColor', 'currentColor'], opacity: 100 }); return `<button data-type="${t}" aria-pressed="${t === state.type}">${mini.svg.replace('<svg ', '<svg preserveAspectRatio="xMidYMid slice" ').replace(/width="[\d.]+" height="[\d.]+"/, '')}${t}</button>`; }).join('');
+  $('#palettes').innerHTML = Object.entries(PALETTES).map(([k, v]) => `<button data-p="${k}" aria-pressed="${k === state.palette}"><span>${v.map(c => `<i style="background:${c}"></i>`).join('')}</span>${k}</button>`).join('');
+  renderColors();
 }
+function renderColors() {
+  $('#colors').innerHTML = state.colors.map((c, i) => i === 0
+    ? `<label class="bg" style="--bgc:${c}">Background<input type="color" value="${c}" data-i="0" aria-label="Background colour"></label>`
+    : `<label style="background:${c}"><input type="color" value="${c}" data-i="${i}" aria-label="Colour ${i}"></label>`).join('');
+}
+function sync() { ['scale', 'stroke', 'density', 'opacity'].forEach(k => $('#' + k).value = state[k]); document.querySelectorAll('#types button').forEach(b => b.setAttribute('aria-pressed', b.dataset.type === state.type)); document.querySelectorAll('#palettes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === state.palette)); renderColors(); render(); }
 
-document.getElementById('pg-types').querySelectorAll('.pg-type-btn').forEach(btn=>{
-  btn.addEventListener('click',function(){
-    document.querySelectorAll('.pg-type-btn').forEach(b=>b.classList.remove('active'));
-    this.classList.add('active');
-    state.type=this.dataset.type;draw();
-  });
-});
+$('#types').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.type = b.dataset.type; sync(); });
+$('#palettes').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.palette = b.dataset.p; state.colors = [...PALETTES[b.dataset.p]]; sync(); });
+$('#colors').addEventListener('input', e => { const i = +e.target.dataset.i; state.colors[i] = e.target.value; state.palette = ''; e.target.parentElement.style[i ? 'background' : 'setProperty'] = e.target.value; if (!i) e.target.parentElement.style.setProperty('--bgc', e.target.value); document.querySelectorAll('#palettes button').forEach(b => b.setAttribute('aria-pressed', false)); render(); });
+['scale', 'stroke', 'density', 'opacity'].forEach(k => $('#' + k).addEventListener('input', e => { state[k] = +e.target.value; render(); }));
+$('#shuffle').addEventListener('click', () => { state.seed = Math.floor(Math.random() * 99999); render(); });
+$('#random').addEventListener('click', () => { state.type = TYPES[Math.floor(Math.random() * TYPES.length)]; const keys = Object.keys(PALETTES); state.palette = keys[Math.floor(Math.random() * keys.length)]; state.colors = [...PALETTES[state.palette]]; state.scale = 24 + Math.floor(Math.random() * 60); state.seed = Math.floor(Math.random() * 99999); sync(); });
+document.querySelectorAll('.topbar button').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('.topbar button').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#stage').classList.toggle('with-card', b.dataset.view === 'card'); }));
 
-document.getElementById('pg-scale').addEventListener('input',function(){
-  state.scale=+this.value;document.getElementById('pg-scale-out').textContent=this.value;draw();
-});
-document.getElementById('pg-stroke').addEventListener('input',function(){
-  state.stroke=+this.value;document.getElementById('pg-stroke-out').textContent=this.value;draw();
-});
-
-const palEl=document.getElementById('pg-palette');
-PALETTES.forEach((pal,i)=>{
-  const swatch=document.createElement('div');
-  swatch.className='pg-pal-btn'+(i===0?' active':'');
-  swatch.style.background=`linear-gradient(135deg,${pal.colors[0]} 50%,${pal.colors[2]} 50%)`;
-  swatch.title=pal.name;
-  swatch.onclick=()=>{
-    document.querySelectorAll('.pg-palette .pg-pal-btn').forEach(b=>b.classList.remove('active'));
-    swatch.classList.add('active');
-    state.paletteIdx=i;draw();
+const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 1600); };
+const copy = (txt, m) => navigator.clipboard.writeText(txt).then(() => toast(m)).catch(() => toast('Copy failed'));
+const download = (blob, name) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
+$('#copycss').addEventListener('click', () => copy($('#css').textContent, 'CSS copied'));
+$('#share').addEventListener('click', () => copy(location.href, 'Link copied'));
+$('#svg').addEventListener('click', () => download(new Blob([tile().svg], { type: 'image/svg+xml' }), `pattern-${state.type}-${state.seed}.svg`));
+$('#png').addEventListener('click', () => {
+  const t = tile(), sz = $('#size').value;
+  const [w, h] = sz === 'tile' ? [t.W * 2, t.H * 2] : sz.split('x').map(Number);
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h);
+    const x = c.getContext('2d');
+    if (sz === 'tile') x.drawImage(img, 0, 0, c.width, c.height);
+    else { const p = x.createPattern(img, 'repeat'); x.fillStyle = p; x.fillRect(0, 0, c.width, c.height); }
+    c.toBlob(b => { download(b, `pattern-${state.type}-${sz}.png`); toast('PNG downloaded'); });
   };
-  palEl.appendChild(swatch);
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t.svg);
 });
 
-function randomize(){
-  state.seed=Math.floor(Math.random()*99999);
-  const types=['grid','dots','chevron','hex','diagonal','circles','triangles','wave'];
-  state.type=types[Math.floor(Math.random()*types.length)];
-  state.scale=Math.floor(Math.random()*50)+12;
-  state.stroke=Math.floor(Math.random()*6)+1;
-  state.paletteIdx=Math.floor(Math.random()*PALETTES.length);
-  document.querySelectorAll('.pg-type-btn').forEach(b=>{b.classList.toggle('active',b.dataset.type===state.type);});
-  document.getElementById('pg-scale').value=state.scale;document.getElementById('pg-scale-out').textContent=state.scale;
-  document.getElementById('pg-stroke').value=state.stroke;document.getElementById('pg-stroke-out').textContent=state.stroke;
-  document.querySelectorAll('.pg-palette .pg-pal-btn').forEach((b,i)=>b.classList.toggle('active',i===state.paletteIdx));
-  draw();
+// restore from a shared link
+const q = new URLSearchParams(location.hash.slice(1));
+if (q.get('t') && TYPES.includes(q.get('t'))) {
+  state.type = q.get('t');
+  const cs = (q.get('c') || '').split('-').filter(x => /^[0-9a-f]{6}$/i.test(x)).map(x => '#' + x);
+  if (cs.length === 4) { state.colors = cs; state.palette = ''; }
+  ['scale', 's', 'stroke', 'w', 'density', 'd', 'opacity', 'o', 'seed', 'r'].reduce((a, k, i, arr) => { if (i % 2 === 0) { const v = +q.get(arr[i + 1]); if (v) state[k] = v; } return a; }, 0);
 }
-
-function downloadPNG(){
-  const a=document.createElement('a');
-  a.download='pattern-'+String(state.seed).padStart(5,'0')+'.png';
-  a.href=canvas.toDataURL('image/png');a.click();
-}
-
-draw();
+buildUI(); sync();
 </script>
+</body>
+</html>
